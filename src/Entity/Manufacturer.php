@@ -10,9 +10,14 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity()
- *
- * @ApiResource()
  */
+#[
+    ApiResource(
+        collectionOperations: ["get", "post"],
+        itemOperations: ["get", "patch"],
+        attributes: ["pagination_items_per_page" => 2]
+    )
+]
 class Manufacturer
 {
     /**
