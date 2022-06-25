@@ -7,23 +7,29 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity()
- *
- * @ApiResource()
- * @ApiFilter(SearchFilter::class, properties={"name": "partial", "description": "partial", "manufacturer.countryCode": "exact"})
  */
 #[
-      ApiFilter(
-          SearchFilter::class,
-          properties: ["name" => SearchFilter::STRATEGY_PARTIAL, "manufacturer.countryCode" => SearchFilter::STRATEGY_EXACT]
-      ),
-      ApiFilter(
-          OrderFilter::class,
-          properties: ['issueDate'])
-    ]
+    ApiResource(
+        denormalizationContext: ['groups' => ['product.write']],
+        normalizationContext: ['groups' => ['product.read']]
+    ),
+    ApiFilter(
+        SearchFilter::class,
+        properties: [
+            "name" => SearchFilter::STRATEGY_PARTIAL,
+            "manufacturer.countryCode" => SearchFilter::STRATEGY_EXACT,
+            "manufacturer.id" => SearchFilter::STRATEGY_EXACT
+        ]
+    ),
+    ApiFilter(
+        OrderFilter::class,
+        properties: ['issueDate'])
+]
 class Product
 {
     /**
@@ -42,6 +48,7 @@ class Product
      *
      * @Assert\NotNull()
      */
+    #[Groups(['product.read', 'product.write'])]
     private ?string $mpn = null;
 
     /**
@@ -50,6 +57,7 @@ class Product
      * @ORM\Column
      * @Assert\NotBlank()
      */
+    #[Groups(['product.read', 'product.write'])]
     private string $name = '';
 
     /**
@@ -58,14 +66,15 @@ class Product
      * @ORM\Column(type="text")
      * @Assert\NotBlank()
      */
+    #[Groups(['product.read', 'product.write'])]
     private string $description = '';
 
     /**
      * The date of issue of the product.
      *
      * @ORM\Column(type="datetime")
-     * @Assert\NotNull()
      */
+    #[Groups(['product.read'])]
     private ?\DateTimeInterface $issueDate = null;
 
     /**
@@ -73,6 +82,7 @@ class Product
      *
      * @ORM\ManyToOne(targetEntity="Manufacturer", inversedBy="products")
      */
+    #[Groups(['product.read'])]
     private ?Manufacturer $manufacturer = null;
 
     /**
